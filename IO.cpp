@@ -31,7 +31,7 @@ void IO::readMovies()
 	cout << "*Read movies from file : " << fileName << endl;
 	ifstream infile(fileName);
 
-	cout << (infile.is_open() ? "*The movies.csv file is open*" : "*movies.csv Opening failed*") << endl;
+	//cout << (infile.is_open() ? "*The movies.csv file is open*" : "*movies.csv Opening failed*") << endl;
 	
 	int id = 0;
 	int uni_id;
@@ -78,11 +78,11 @@ void IO::readMovies()
 		}
 
 		_schedule->setMovieList(movieList);
-		_schedule->setMap_UnifiedId_Id(mapid_UniId);
+		_schedule->setMovieMap_UnifiedId_Id(mapid_UniId);
 		infile.close();
 
-		cout << "The size of movieList is :" << _schedule->getMovieList().size() << endl;
-		cout << "The size of map is :" << mapid_UniId.size() << endl;
+		//cout << "The size of movieList is :" << _schedule->getMovieList().size() << endl;
+		//cout << "The size of map is :" << mapid_UniId.size() << endl;
 
 		/*for (auto c:movieList)
 			c->print();*/
@@ -100,6 +100,8 @@ void IO::readMovies()
 
 void IO::readRatingMatrix() 
 {
+	map<int, int> _user_mapid_UniId;
+
 	vector<User *> userList;
 	vector<Movie *> movieList;
 	
@@ -107,18 +109,19 @@ void IO::readRatingMatrix()
 	//cout << "The size of movieList is :"<<movieList.size() << endl;// the difference between sizeof and .size() fucntion
 
 	movieList = _schedule->getMovieList();
-	cout << (movieList.empty() ? "The assignement of movieList failed" : "The assignement of movieList finished") << endl;
-	map<int, int> IdMap = _schedule->getMap_UnifiedId_Id();
-	cout << (movieList.empty() ? "The assignement of IdMap failed" : "The assignement of IdMap finished") << endl;
+	//cout << (movieList.empty() ? "The assignement of movieList failed" : "The assignement of movieList finished") << endl;
+	map<int, int> MIdMap = _schedule->getMovieMap_UnifiedId_Id();
+	//cout << (movieList.empty() ? "The assignement of IdMap failed" : "The assignement of IdMap finished") << endl;
 
 	string fileName = Util::INPUTPATH + "ratings.csv";
 	cout << "*Read ratings from file : " << fileName << endl;
 	ifstream infile(fileName, ifstream::in);
 	
-	cout << (infile.is_open() ? "The ratings.csv file is open" : "ratings.csv Opening failed") << endl;
+	//cout << (infile.is_open() ? "The ratings.csv file is open" : "ratings.csv Opening failed") << endl;
 	
-	int id;//userId
+	int id;//userId:unified_Id
 	int m_u_id;//movieId:unified_id
+	//int u_id = 0;//userId
 	int m_id;//movieId
 	int rating;
 	string dipose_timestamp;
@@ -146,8 +149,11 @@ void IO::readRatingMatrix()
 			token = strtok_s(NULL, ",", &temp);
 			dipose_timestamp = string(token);
 
-			auto iter = IdMap.find(m_u_id);
+			auto iter = MIdMap.find(m_u_id);
 			m_id = iter->second;
+
+			//_user_mapid_UniId.insert(pair<int, int>(u_u_id, u_id));
+
 
 			// input row by row: initialize userList
 			if (!userList.empty()) 
@@ -169,6 +175,7 @@ void IO::readRatingMatrix()
 				user->setRate(m_id, rating);
 				userList.push_back(user);
 			}
+
 
 			//input column by column: revise movieList
 			if (!movieList.empty())
@@ -199,4 +206,5 @@ void IO::readRatingMatrix()
 		_schedule->getMovieList()[i]->print();*/
 	cout << " * The total number of User is : " << _schedule->getUserList().size() << endl;
 	cout << " * The total number of Movie is : " << _schedule->getMovieList().size() << endl;
+
 }
