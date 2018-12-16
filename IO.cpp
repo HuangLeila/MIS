@@ -27,7 +27,7 @@ void IO::readMovies()
 	map<int, int> mapid_UniId;
 	vector<Movie *> movieList;
 
-	string fileName = Util::INPUTPATH + "movies.csv";
+	string fileName = Util::INPUTPATH + "movies_3000.csv";
 	cout << "*Read movies from file : " << fileName << endl;
 	ifstream infile(fileName);
 
@@ -78,7 +78,7 @@ void IO::readMovies()
 		}
 
 		_schedule->setMovieList(movieList);
-		_schedule->setMap_UnifiedId_Id(mapid_UniId);
+		_schedule->setMovieMap_UnifiedId_Id(mapid_UniId);
 		infile.close();
 
 		cout << "The size of movieList is :" << _schedule->getMovieList().size() << endl;
@@ -100,6 +100,8 @@ void IO::readMovies()
 
 void IO::readRatingMatrix() 
 {
+	map<int, int> _user_mapid_UniId;
+
 	vector<User *> userList;
 	vector<Movie *> movieList;
 	
@@ -107,18 +109,19 @@ void IO::readRatingMatrix()
 	//cout << "The size of movieList is :"<<movieList.size() << endl;// the difference between sizeof and .size() fucntion
 
 	movieList = _schedule->getMovieList();
-	cout << (movieList.empty() ? "The assignement of movieList failed" : "The assignement of movieList finished") << endl;
-	map<int, int> IdMap = _schedule->getMap_UnifiedId_Id();
-	cout << (movieList.empty() ? "The assignement of IdMap failed" : "The assignement of IdMap finished") << endl;
+	//cout << (movieList.empty() ? "The assignement of movieList failed" : "The assignement of movieList finished") << endl;
+	map<int, int> MIdMap = _schedule->getMovieMap_UnifiedId_Id();
+	//cout << (movieList.empty() ? "The assignement of IdMap failed" : "The assignement of IdMap finished") << endl;
 
-	string fileName = Util::INPUTPATH + "ratings.csv";
+	string fileName = Util::INPUTPATH + "ratings_3000.csv";
 	cout << "*Read ratings from file : " << fileName << endl;
 	ifstream infile(fileName, ifstream::in);
 	
 	cout << (infile.is_open() ? "The ratings.csv file is open" : "ratings.csv Opening failed") << endl;
 	
-	int id;//userId
+	int u_u_id;//userId:unified_Id
 	int m_u_id;//movieId:unified_id
+	int u_id = 0;//userId
 	int m_id;//movieId
 	int rating;
 	string dipose_timestamp;
@@ -135,7 +138,7 @@ void IO::readRatingMatrix()
 		while (getline(infile, buf)) 
 		{
 			token = strtok_s((char*)buf.c_str(), ",", &temp);
-			id = atoi(token);
+			u_u_id = atoi(token);
 
 			token = strtok_s(NULL, ",", &temp);
 			m_u_id = atoi(token);
@@ -146,34 +149,46 @@ void IO::readRatingMatrix()
 			token = strtok_s(NULL, ",", &temp);
 			dipose_timestamp = string(token);
 
-			auto iter = IdMap.find(m_u_id);
+			auto iter = MIdMap.find(m_u_id);
 			m_id = iter->second;
+
+			//_user_mapid_UniId.insert(pair<int, int>(u_u_id, u_id));
+
 
 			// input row by row: initialize userList
 			if (!userList.empty()) 
 			{
-				if ((*(userList.end()-1))->getID()<id)
+				if ((*(userList.end()-1))->getUnifiedID()<u_u_id)
 				{
-					User * user = new User(id);
+					u_id += 1;
+					
+					User * user = new User(u_id,u_u_id);
 					user->setRate(m_id, rating);
 					userList.push_back(user);
+
+					_user_mapid_UniId.insert(pair<int, int>(u_u_id, u_id));
+					
 				}
 				else
 				{
-					userList[id - 1]->setRate(m_id, rating);
+					userList[u_id]->setRate(m_id, rating);
 				}
 			}
 			else//add the first user into userList
 			{
-				User * user = new User(id);
+				User * user = new User(u_id,u_u_id);
 				user->setRate(m_id, rating);
 				userList.push_back(user);
+				//u_id += 1;
+
+				_user_mapid_UniId.insert(pair<int, int>(u_u_id, u_id));
 			}
+
 
 			//input column by column: revise movieList
 			if (!movieList.empty())
 			{
-				movieList[m_id]->setRate(id,rating);
+				movieList[m_id]->setRate(u_id,rating);
 			}
 			else
 			{
@@ -185,8 +200,12 @@ void IO::readRatingMatrix()
 	
 	_schedule->setUserList(userList);
 	_schedule->setMovieList(movieList);
+
+	_schedule->setUserMap_UnifiedId_Id(_user_mapid_UniId);
 	
 	infile.close();
+
+
 
 	/*cout << "====================PRINT FIRST 10 USER ROW====================" << endl;
 
@@ -195,8 +214,9 @@ void IO::readRatingMatrix()
 
 	cout << "====================PRINT FIRST 10 MOVIE COLUMN====================" << endl;
 
-	for (int i = 0; i < 10; ++i)
+	for (int i = 0; i < 200; ++i)
 		_schedule->getMovieList()[i]->print();*/
 	cout << " * The total number of User is : " << _schedule->getUserList().size() << endl;
 	cout << " * The total number of Movie is : " << _schedule->getMovieList().size() << endl;
+
 }
