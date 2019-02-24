@@ -1,22 +1,24 @@
 #pragma once
-#ifndef _IO_H
-#define _IO_H
+#include"Util.h"
 
-#include"Schedule.h"
-
-class IO {
+class Machine;
+class Material;
+class Contract;
+class Schedule;
+class SubContract;
+class IO
+{
 private:
-	static Schedule *_schedule;
-
+	Schedule * _schedule;
 public:
-	IO();
-	~IO();
+	IO(Schedule * schedule);
+	void readContractList();
+	void readMachineList();
+	void readSubContract();
 
-	Schedule *getSchedule() { return _schedule; }
+	void setSchedule(Schedule * schedule) { _schedule = schedule; }
+	Schedule * getSchedule() { return _schedule; }
 
-	void input();
-	void readRatingMatrix();
-	void readMovies();
-
+	static void outputMachine(vector<Machine *> machineList, vector<Material *> materials, int maxDayNum);
+	static void outputContract(vector<Contract *> contractList);
 };
-#endif // !_IO_H
